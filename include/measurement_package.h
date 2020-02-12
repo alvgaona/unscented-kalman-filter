@@ -1,19 +1,15 @@
-#ifndef MEASUREMENT_PACKAGE_H_
-#define MEASUREMENT_PACKAGE_H_
+#ifndef UNSCENTED_KALMAN_FILTER_MEASUREMENT_PACKAGE_H
+#define UNSCENTED_KALMAN_FILTER_MEASUREMENT_PACKAGE_H
 
 #include "Eigen/Dense"
 
 class MeasurementPackage {
-public:
+ public:
   long timestamp_;
 
-  enum SensorType{
-    LASER,
-    RADAR
-  } sensor_type_;
+  enum SensorType { LASER, RADAR } sensor_type_;
 
   Eigen::VectorXd raw_measurements_;
-
 };
 
-#endif /* MEASUREMENT_PACKAGE_H_ */
+#endif
