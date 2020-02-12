@@ -3,7 +3,7 @@
 // for exploring self-driving car sensors
 
 //#include "render/render.h"
-#include "highway.h"
+#include "../include/highway.h"
 
 int main(int argc, char** argv)
 {

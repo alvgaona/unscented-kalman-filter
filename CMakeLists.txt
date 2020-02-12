@@ -1,23 +1,23 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.11.3)
 
-add_definitions(-std=c++11)
-
+set(CMAKE_CXX_STANDARD 14)
 set(CXX_FLAGS "-Wall")
-set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS, "${CXX_FLAGS} -pthread")
 
-project(playback)
+project(unscented_kalman_filter)
 
-find_package(PCL 1.2 REQUIRED)
+find_package(PCL 1.7 REQUIRED)
 
-include_directories(${PCL_INCLUDE_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
+file(GLOB SOURCES src/*.cpp)
+
+add_executable (ukf ${SOURCES})
 add_definitions(${PCL_DEFINITIONS})
+target_include_directories(ukf PRIVATE
+    include
+    ${PCL_INCLUDE_DIRS})
+target_link_directories(ukf PRIVATE
+    lib
+    ${PCL_LIBRARY_DIRS})
+target_link_libraries (ukf PRIVATE ${PCL_LIBRARIES})
+
 list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
-
-
-add_executable (ukf_highway src/main.cpp src/ukf.cpp src/tools.cpp src/render/render.cpp)
-target_link_libraries (ukf_highway ${PCL_LIBRARIES})
-
-
-
-

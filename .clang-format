@@ -1,0 +1,9 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+ColumnLimit: 150
+DerivePointerAlignment: false
+PointerAlignment: Left
+AlignAfterOpenBracket: AlwaysBreak
+BinPackArguments: false
+BinPackParameters: false
