@@ -1,129 +1,128 @@
-/* \author Aaron Brown */
-// Functions and structs used to render the enviroment
-// such as cars and the highway
+#include "render.h"
 
-#include "../include/render.h"
-
-void renderHighway(double distancePos, pcl::visualization::PCLVisualizer::Ptr& viewer) {
+void RenderHighway(double distance_pos, pcl::visualization::PCLVisualizer::Ptr& viewer) {
   // units in meters
-  double roadLengthAhead = 50.0;
-  double roadLengthBehind = -15.0;
-  double roadWidth = 12.0;
-  double roadHeight = 0.2;
+  double road_length_ahead = 50.0;
+  double road_length_behind = -15.0;
+  double road_width = 12.0;
+  double road_height = 0.2;
 
-  viewer->addCube(roadLengthBehind, roadLengthAhead, -roadWidth / 2, roadWidth / 2, -roadHeight, 0, .2, .2, .2, "highwayPavement");
+  viewer->addCube(road_length_behind, road_length_ahead, -road_width / 2, road_width / 2, -road_height, 0, .2, .2, .2, "highwayPavement");
   viewer->setShapeRenderingProperties(
       pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE, "highwayPavement");
   viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 1.0, "highwayPavement");
-  viewer->addLine(pcl::PointXYZ(roadLengthBehind, -roadWidth / 6, 0.01), pcl::PointXYZ(roadLengthAhead, -roadWidth / 6, 0.01), 1, 1, 0, "line1");
-  viewer->addLine(pcl::PointXYZ(roadLengthBehind, roadWidth / 6, 0.01), pcl::PointXYZ(roadLengthAhead, roadWidth / 6, 0.01), 1, 1, 0, "line2");
+  viewer->addLine(
+      pcl::PointXYZ(road_length_behind, -road_width / 6, 0.01), pcl::PointXYZ(road_length_ahead, -road_width / 6, 0.01), 1, 1, 0, "line1");
+  viewer->addLine(pcl::PointXYZ(road_length_behind, road_width / 6, 0.01), pcl::PointXYZ(road_length_ahead, road_width / 6, 0.01), 1, 1, 0, "line2");
 
   // render poles
   // spacing in meters between poles, poles start at x = 0
-  double poleSpace = 10;
+  double pole_space = 10;
   // pole distance from road curve
-  double poleCurve = 4;
-  double poleWidth = 0.5;
-  double poleHeight = 3;
+  double pole_curve = 4;
+  double pole_width = 0.5;
+  double pole_height = 3;
 
   // double distancePos = 7;
-  double markerPos = (roadLengthBehind / poleSpace) * poleSpace - distancePos;
-  while (markerPos < roadLengthBehind) markerPos += poleSpace;
-  int poleIndex = 0;
-  while (markerPos <= roadLengthAhead) {
+  double marker_pos = (road_length_behind / pole_space) * pole_space - distance_pos;
+  while (marker_pos < road_length_behind) {
+    marker_pos += pole_space;
+  }
+  int pole_index = 0;
+  while (marker_pos <= road_length_ahead) {
     //	left pole
     viewer->addCube(
-        -poleWidth / 2 + markerPos,
-        poleWidth / 2 + markerPos,
-        -poleWidth / 2 + roadWidth / 2 + poleCurve,
-        poleWidth / 2 + roadWidth / 2 + poleCurve,
+        -pole_width / 2 + marker_pos,
+        pole_width / 2 + marker_pos,
+        -pole_width / 2 + road_width / 2 + pole_curve,
+        pole_width / 2 + road_width / 2 + pole_curve,
         0,
-        poleHeight,
+        pole_height,
         1,
         0.5,
         0,
-        "pole_" + std::to_string(poleIndex) + "l");
+        "pole_" + std::to_string(pole_index) + "l");
     viewer->setShapeRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION,
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE,
-        "pole_" + std::to_string(poleIndex) + "l");
+        "pole_" + std::to_string(pole_index) + "l");
     viewer->addCube(
-        -poleWidth / 2 + markerPos,
-        poleWidth / 2 + markerPos,
-        -poleWidth / 2 + roadWidth / 2 + poleCurve,
-        poleWidth / 2 + roadWidth / 2 + poleCurve,
+        -pole_width / 2 + marker_pos,
+        pole_width / 2 + marker_pos,
+        -pole_width / 2 + road_width / 2 + pole_curve,
+        pole_width / 2 + road_width / 2 + pole_curve,
         0,
-        poleHeight,
+        pole_height,
         0,
         0,
         0,
-        "pole_" + std::to_string(poleIndex) + "lframe");
+        "pole_" + std::to_string(pole_index) + "lframe");
     viewer->setShapeRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION,
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION_WIREFRAME,
-        "pole_" + std::to_string(poleIndex) + "lframe");
+        "pole_" + std::to_string(pole_index) + "lframe");
 
     //	right pole
     viewer->addCube(
-        -poleWidth / 2 + markerPos,
-        poleWidth / 2 + markerPos,
-        -poleWidth / 2 - roadWidth / 2 - poleCurve,
-        poleWidth / 2 - roadWidth / 2 - poleCurve,
+        -pole_width / 2 + marker_pos,
+        pole_width / 2 + marker_pos,
+        -pole_width / 2 - road_width / 2 - pole_curve,
+        pole_width / 2 - road_width / 2 - pole_curve,
         0,
-        poleHeight,
+        pole_height,
         1,
         0.5,
         0,
-        "pole_" + std::to_string(poleIndex) + "r");
+        "pole_" + std::to_string(pole_index) + "r");
     viewer->setShapeRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION,
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE,
-        "pole_" + std::to_string(poleIndex) + "r");
+        "pole_" + std::to_string(pole_index) + "r");
     viewer->addCube(
-        -poleWidth / 2 + markerPos,
-        poleWidth / 2 + markerPos,
-        -poleWidth / 2 - roadWidth / 2 - poleCurve,
-        poleWidth / 2 - roadWidth / 2 - poleCurve,
+        -pole_width / 2 + marker_pos,
+        pole_width / 2 + marker_pos,
+        -pole_width / 2 - road_width / 2 - pole_curve,
+        pole_width / 2 - road_width / 2 - pole_curve,
         0,
-        poleHeight,
+        pole_height,
         0,
         0,
         0,
-        "pole_" + std::to_string(poleIndex) + "rframe");
+        "pole_" + std::to_string(pole_index) + "rframe");
     viewer->setShapeRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION,
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION_WIREFRAME,
-        "pole_" + std::to_string(poleIndex) + "rframe");
+        "pole_" + std::to_string(pole_index) + "rframe");
 
-    markerPos += poleSpace;
-    poleIndex++;
+    marker_pos += pole_space;
+    pole_index++;
   }
 }
 
-int countRays = 0;
-void renderRays(pcl::visualization::PCLVisualizer::Ptr& viewer, const Vect3& origin, const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud) {
+int count_rays = 0;
+void RenderRays(pcl::visualization::PCLVisualizer::Ptr& viewer, const Eigen::Vector3d& origin, const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud) {
   for (pcl::PointXYZ point : cloud->points) {
-    viewer->addLine(pcl::PointXYZ(origin.x, origin.y, origin.z), point, 1, 0, 0, "ray" + std::to_string(countRays));
-    countRays++;
+    viewer->addLine(pcl::PointXYZ(origin.x(), origin.y(), origin.z()), point, 1, 0, 0, "ray" + std::to_string(count_rays));
+    count_rays++;
   }
 }
 
-void clearRays(pcl::visualization::PCLVisualizer::Ptr& viewer) {
-  while (countRays) {
-    countRays--;
-    viewer->removeShape("ray" + std::to_string(countRays));
+void ClearRays(pcl::visualization::PCLVisualizer::Ptr& viewer) {
+  while (count_rays) {
+    count_rays--;
+    viewer->removeShape("ray" + std::to_string(count_rays));
   }
 }
 
-void renderPointCloud(
-    pcl::visualization::PCLVisualizer::Ptr& viewer, const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, std::string name, Color color) {
+void RenderPointCloud(
+    pcl::visualization::PCLVisualizer::Ptr& viewer, const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, const std::string& name, Color color) {
   viewer->addPointCloud<pcl::PointXYZ>(cloud, name);
   viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, name);
   viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, name);
 }
 
-void renderPointCloud(
-    pcl::visualization::PCLVisualizer::Ptr& viewer, const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, std::string name, Color color) {
+void RenderPointCloud(
+    pcl::visualization::PCLVisualizer::Ptr& viewer, const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, const std::string& name, Color color) {
   if (color.r == -1) {
     // Select color based off of cloud intensity
     pcl::visualization::PointCloudColorHandlerGenericField<pcl::PointXYZI> intensity_distribution(cloud, "intensity");
@@ -138,7 +137,7 @@ void renderPointCloud(
 }
 
 // Draw wire frame box with filled transparent color
-void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, Box box, int id, Color color, float opacity) {
+void RenderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, Box box, int id, Color color, float opacity) {
   if (opacity > 1.0) opacity = 1.0;
   if (opacity < 0.0) opacity = 0.0;
 
@@ -159,9 +158,13 @@ void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, Box box, int id, 
   viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, opacity * 0.3, cubeFill);
 }
 
-void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, BoxQ box, int id, Color color, float opacity) {
-  if (opacity > 1.0) opacity = 1.0;
-  if (opacity < 0.0) opacity = 0.0;
+void RenderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, const BoxQ& box, int id, Color color, float opacity) {
+  if (opacity > 1.0) {
+    opacity = 1.0;
+  }
+  if (opacity < 0.0) {
+    opacity = 0.0;
+  }
 
   std::string cube = "box" + std::to_string(id);
   viewer->addCube(box.bboxTransform, box.bboxQuaternion, box.cube_length, box.cube_width, box.cube_height, cube);
@@ -170,10 +173,10 @@ void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, BoxQ box, int id,
   viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, cube);
   viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, opacity, cube);
 
-  std::string cubeFill = "boxFill" + std::to_string(id);
-  viewer->addCube(box.bboxTransform, box.bboxQuaternion, box.cube_length, box.cube_width, box.cube_height, cubeFill);
+  std::string cube_fill = "boxFill" + std::to_string(id);
+  viewer->addCube(box.bboxTransform, box.bboxQuaternion, box.cube_length, box.cube_width, box.cube_height, cube_fill);
   viewer->setShapeRenderingProperties(
-      pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE, cubeFill);
-  viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, cubeFill);
-  viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, opacity * 0.3, cubeFill);
+      pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE, cube_fill);
+  viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, cube_fill);
+  viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, opacity * 0.3, cube_fill);
 }

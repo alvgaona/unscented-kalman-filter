@@ -11,8 +11,6 @@ int main(int argc, char** argv) {
 
   Highway highway(viewer);
 
-  // initHighway(viewer);
-
   int frame_per_sec = 30;
   int sec_interval = 10;
   int frame_count = 0;
@@ -24,8 +22,7 @@ int main(int argc, char** argv) {
     viewer->removeAllPointClouds();
     viewer->removeAllShapes();
 
-    // stepHighway(egoVelocity,time_us, frame_per_sec, viewer);
-    highway.stepHighway(egoVelocity, time_us, frame_per_sec, viewer);
+    highway.StepHighway(egoVelocity, time_us, frame_per_sec, viewer);
     viewer->spinOnce(1000 / frame_per_sec);
     frame_count++;
     time_us = 1000000 * frame_count / frame_per_sec;

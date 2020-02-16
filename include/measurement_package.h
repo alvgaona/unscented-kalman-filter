@@ -12,4 +12,4 @@ class MeasurementPackage {
   Eigen::VectorXd raw_measurements_;
 };
 
-#endif
+#endif /* UNSCENTED_KALMAN_FILTER_MEASUREMENT_PACKAGE_H */

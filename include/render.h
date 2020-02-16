@@ -5,41 +5,33 @@
 
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "box.h"
+#include "boxq.h"
 #include "ukf.h"
 
 struct Color {
   float r, g, b;
 
-  Color(float setR, float setG, float setB) : r(setR), g(setG), b(setB) {}
+  Color(float _r, float _g, float _b) : r(_r), g(_g), b(_b) {}
 };
 
-struct Vect3 {
-  double x, y, z;
+enum CameraAngle { kXY, kTopDown, kSide, kFPS };
 
-  Vect3(double setX, double setY, double setZ) : x(setX), y(setY), z(setZ) {}
-
-  Vect3 operator+(const Vect3& vec) {
-    Vect3 result(x + vec.x, y + vec.y, z + vec.z);
-    return result;
-  }
-};
-
-enum CameraAngle { XY, TopDown, Side, FPS };
-
-struct accuation {
+struct Instruction {
   long long time_us;
   float acceleration;
   float steering;
 
-  accuation(long long t, float acc, float s) : time_us(t), acceleration(acc), steering(s) {}
+  Instruction(long long t, float acc, float s) : time_us(t), acceleration(acc), steering(s) {}
 };
 
 struct Car {
   // units in meters
-  Vect3 position, dimensions;
+  Eigen::Vector3d position;
+  Eigen::Vector3d dimensions;
   Eigen::Quaternionf orientation;
   std::string name;
   Color color;
@@ -48,130 +40,149 @@ struct Car {
   float acceleration;
   float steering;
   // distance between front of vehicle and center of gravity
-  float Lf;
+  float lf;
 
   UKF ukf;
 
   // accuation instructions
-  std::vector<accuation> instructions;
-  int accuateIndex;
+  std::vector<Instruction> instructions;
+  int accuate_index;
 
-  double sinNegTheta;
-  double cosNegTheta;
+  double sin_negative_theta;
+  double cos_negative_theta;
 
-  Car() : position(Vect3(0, 0, 0)), dimensions(Vect3(0, 0, 0)), color(Color(0, 0, 0)) {}
+  Car() : position(Eigen::Vector3d(0, 0, 0)), dimensions(Eigen::Vector3d(0, 0, 0)), color(Color(0, 0, 0)) {}
 
-  Car(Vect3 setPosition, Vect3 setDimensions, Color setColor, float setVelocity, float setAngle, float setLf, std::string setName)
-      : position(setPosition), dimensions(setDimensions), color(setColor), velocity(setVelocity), angle(setAngle), Lf(setLf), name(setName) {
-    orientation = getQuaternion(angle);
-    acceleration = 0;
-    steering = 0;
-    accuateIndex = -1;
-
-    sinNegTheta = sin(-angle);
-    cosNegTheta = cos(-angle);
+  Car(Eigen::Vector3d _position, Eigen::Vector3d _dimensions, Color _color, float _velocity, float _set_angle, float _lf, std::string _name)
+      : position(_position),
+        dimensions(_dimensions),
+        color(_color),
+        velocity(_velocity),
+        angle(_set_angle),
+        lf(_lf),
+        name(std::move(_name)),
+        acceleration(0),
+        steering(0),
+        accuate_index(-1) {
+    orientation = ComputeQuaternion(angle);
+    sin_negative_theta = sin(-angle);
+    cos_negative_theta = cos(-angle);
   }
 
   // angle around z axis
-  Eigen::Quaternionf getQuaternion(float theta) {
+  Eigen::Quaternionf ComputeQuaternion(float theta) {
     Eigen::Matrix3f rotation_mat;
     rotation_mat << cos(theta), -sin(theta), 0, sin(theta), cos(theta), 0, 0, 0, 1;
-
     Eigen::Quaternionf q(rotation_mat);
     return q;
   }
 
-  void render(pcl::visualization::PCLVisualizer::Ptr& viewer) {
+  void Render(pcl::visualization::PCLVisualizer::Ptr& viewer) {
     // render bottom of car
     viewer->addCube(
-        Eigen::Vector3f(position.x, position.y, dimensions.z * 1 / 3), orientation, dimensions.x, dimensions.y, dimensions.z * 2 / 3, name);
+        Eigen::Vector3f(position.x(), position.y(), dimensions.z() * 1 / 3),
+        orientation,
+        dimensions.x(),
+        dimensions.y(),
+        dimensions.z() * 2 / 3,
+        name);
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, name);
     viewer->setShapeRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE, name);
     viewer->addCube(
-        Eigen::Vector3f(position.x, position.y, dimensions.z * 1 / 3), orientation, dimensions.x, dimensions.y, dimensions.z * 2 / 3, name + "frame");
+        Eigen::Vector3f(position.x(), position.y(), dimensions.z() * 1 / 3),
+        orientation,
+        dimensions.x(),
+        dimensions.y(),
+        dimensions.z() * 2 / 3,
+        name + "frame");
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0, 0, 0, name + "frame");
     viewer->setShapeRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_WIREFRAME, name + "frame");
 
     // render top of car
     viewer->addCube(
-        Eigen::Vector3f(position.x, position.y, dimensions.z * 5 / 6),
+        Eigen::Vector3f(position.x(), position.y(), dimensions.z() * 5 / 6),
         orientation,
-        dimensions.x / 2,
-        dimensions.y,
-        dimensions.z * 1 / 3,
+        dimensions.x() / 2,
+        dimensions.y(),
+        dimensions.z() * 1 / 3,
         name + "Top");
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, name + "Top");
     viewer->setShapeRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_SURFACE, name + "Top");
     viewer->addCube(
-        Eigen::Vector3f(position.x, position.y, dimensions.z * 5 / 6),
+        Eigen::Vector3f(position.x(), position.y(), dimensions.z() * 5 / 6),
         orientation,
-        dimensions.x / 2,
-        dimensions.y,
-        dimensions.z * 1 / 3,
+        dimensions.x() / 2,
+        dimensions.y(),
+        dimensions.z() * 1 / 3,
         name + "Topframe");
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, 0, 0, 0, name + "Topframe");
     viewer->setShapeRenderingProperties(
         pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_WIREFRAME, name + "Topframe");
   }
 
-  void setAcceleration(float setAcc) { acceleration = setAcc; }
+  void SetAcceleration(float setAcc) { acceleration = setAcc; }
 
-  void setSteering(float setSteer) { steering = setSteer; }
+  void SetSteering(float setSteer) { steering = setSteer; }
 
-  void setInstructions(std::vector<accuation> setIn) {
-    for (accuation a : setIn) instructions.push_back(a);
+  void SetInstructions(std::vector<Instruction> _instructions) {
+    for (auto a : _instructions) {
+      instructions.emplace_back(a);
+    }
   }
 
-  void setUKF(UKF tracker) { ukf = tracker; }
+  void SetUKF(UKF tracker) { ukf = tracker; }
 
-  void move(float dt, int time_us) {
-    if (instructions.size() > 0 && accuateIndex < (int)instructions.size() - 1) {
-      if (time_us >= instructions[accuateIndex + 1].time_us) {
-        setAcceleration(instructions[accuateIndex + 1].acceleration);
-        setSteering(instructions[accuateIndex + 1].steering);
-        accuateIndex++;
+  void Move(float dt, int time_us) {
+    if (!instructions.empty() && accuate_index < (int)instructions.size() - 1) {
+      if (time_us >= instructions[accuate_index + 1].time_us) {
+        SetAcceleration(instructions[accuate_index + 1].acceleration);
+        SetSteering(instructions[accuate_index + 1].steering);
+        accuate_index++;
       }
     }
 
-    position.x += velocity * cos(angle) * dt;
-    position.y += velocity * sin(angle) * dt;
-    angle += velocity * steering * dt / Lf;
-    orientation = getQuaternion(angle);
+    position.x() += velocity * cos(angle) * dt;
+    position.y() += velocity * sin(angle) * dt;
+    angle += velocity * steering * dt / lf;
+    orientation = ComputeQuaternion(angle);
     velocity += acceleration * dt;
 
-    sinNegTheta = sin(-angle);
-    cosNegTheta = cos(-angle);
+    sin_negative_theta = sin(-angle);
+    cos_negative_theta = cos(-angle);
   }
 
   // collision helper function
-  bool inbetween(double point, double center, double range) { return (center - range <= point) && (center + range >= point); }
+  bool InBetween(double point, double center, double range) { return (center - range <= point) && (center + range >= point); }
 
-  bool checkCollision(Vect3 point) {
+  bool CheckCollision(Eigen::Vector3d point) {
     // check collision for rotated car
-    double xPrime = ((point.x - position.x) * cosNegTheta - (point.y - position.y) * sinNegTheta) + position.x;
-    double yPrime = ((point.y - position.y) * cosNegTheta + (point.x - position.x) * sinNegTheta) + position.y;
+    double xPrime = ((point.x() - position.x()) * cos_negative_theta - (point.y() - position.y()) * sin_negative_theta) + position.x();
+    double yPrime = ((point.y() - position.y()) * cos_negative_theta + (point.x() - position.x()) * sin_negative_theta) + position.y();
 
-    return (inbetween(xPrime, position.x, dimensions.x / 2) && inbetween(yPrime, position.y, dimensions.y / 2) &&
-            inbetween(point.z, position.z + dimensions.z / 3, dimensions.z / 3)) ||
-           (inbetween(xPrime, position.x, dimensions.x / 4) && inbetween(yPrime, position.y, dimensions.y / 2) &&
-            inbetween(point.z, position.z + dimensions.z * 5 / 6, dimensions.z / 6));
+    return (InBetween(xPrime, position.x(), dimensions.x() / 2) && InBetween(yPrime, position.y(), dimensions.y() / 2) &&
+            InBetween(point.z(), position.z() + dimensions.z() / 3, dimensions.z() / 3)) ||
+           (InBetween(xPrime, position.x(), dimensions.x() / 4) && InBetween(yPrime, position.y(), dimensions.y() / 2) &&
+            InBetween(point.z(), position.z() + dimensions.z() * 5 / 6, dimensions.z() / 6));
   }
 };
 
-void renderHighway(double distancePos, pcl::visualization::PCLVisualizer::Ptr& viewer);
-void renderRays(pcl::visualization::PCLVisualizer::Ptr& viewer, const Vect3& origin, const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
-void clearRays(pcl::visualization::PCLVisualizer::Ptr& viewer);
-void renderPointCloud(
-    pcl::visualization::PCLVisualizer::Ptr& viewer, const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, std::string name, Color color = Color(1, 1, 1));
-void renderPointCloud(
+void RenderHighway(double distance_pos, pcl::visualization::PCLVisualizer::Ptr& viewer);
+void RenderRays(pcl::visualization::PCLVisualizer::Ptr& viewer, const Eigen::Vector3d& origin, const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
+void ClearRays(pcl::visualization::PCLVisualizer::Ptr& viewer);
+void RenderPointCloud(
+    pcl::visualization::PCLVisualizer::Ptr& viewer,
+    const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud,
+    const std::string& name,
+    Color color = Color(1, 1, 1));
+void RenderPointCloud(
     pcl::visualization::PCLVisualizer::Ptr& viewer,
     const pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud,
-    std::string name,
+    const std::string& name,
     Color color = Color(-1, -1, -1));
-void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, Box box, int id, Color color = Color(1, 0, 0), float opacity = 1);
-void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, BoxQ box, int id, Color color = Color(1, 0, 0), float opacity = 1);
+void RenderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, Box box, int id, Color color = Color(1, 0, 0), float opacity = 1);
+void RenderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, const BoxQ& box, int id, Color color = Color(1, 0, 0), float opacity = 1);
 
-#endif
+#endif /* UNSCENTED_KALMAN_FILTER_RENDER_H */
