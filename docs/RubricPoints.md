@@ -1,4 +1,4 @@
-# Rubric Points (WIP)
+# Rubric Points
 
 This document describes the rubric points met and a brief description on each one.
 
