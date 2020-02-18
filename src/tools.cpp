@@ -31,9 +31,9 @@ RMarker Tools::RadarSense(Car& car, Car ego, pcl::visualization::PCLVisualizer::
       (car.position.x() - ego.position.x()) * (car.position.x() - ego.position.x()) +
       (car.position.y() - ego.position.y()) * (car.position.y() - ego.position.y()));
   double phi = atan2(car.position.y() - ego.position.y(), car.position.x() - ego.position.x());
-  double rho_dot = (car.velocity * cos(car.angle) * rho * cos(phi) + car.velocity * sin(car.angle) * rho * sin(phi)) / rho;
+  double rhod = (car.velocity * cos(car.angle) * rho * cos(phi) + car.velocity * sin(car.angle) * rho * sin(phi)) / rho;
 
-  RMarker marker = RMarker(rho + Noise(0.3, timestamp + 2), phi + Noise(0.03, timestamp + 3), rho_dot + Noise(0.3, timestamp + 4));
+  RMarker marker = RMarker(rho + Noise(0.3, timestamp + 2), phi + Noise(0.03, timestamp + 3), rhod + Noise(0.3, timestamp + 4));
   if (visualize) {
     viewer->addLine(
         pcl::PointXYZ(ego.position.x(), ego.position.y(), 3.0),
@@ -45,19 +45,19 @@ RMarker Tools::RadarSense(Car& car, Car ego, pcl::visualization::PCLVisualizer::
     viewer->addArrow(
         pcl::PointXYZ(ego.position.x() + marker.rho * cos(marker.phi), ego.position.y() + marker.rho * sin(marker.phi), 3.0),
         pcl::PointXYZ(
-            ego.position.x() + marker.rho * cos(marker.phi) + marker.rho_dot * cos(marker.phi),
-            ego.position.y() + marker.rho * sin(marker.phi) + marker.rho_dot * sin(marker.phi),
+            ego.position.x() + marker.rho * cos(marker.phi) + marker.rhod * cos(marker.phi),
+            ego.position.y() + marker.rho * sin(marker.phi) + marker.rhod * sin(marker.phi),
             3.0),
         1,
         0,
         1,
-        car.name + "_rho_dot");
+        car.name + "_rhod");
   }
 
   MeasurementPackage meas_package;
   meas_package.sensor_type_ = MeasurementPackage::RADAR;
   meas_package.raw_measurements_ = Eigen::VectorXd(3);
-  meas_package.raw_measurements_ << marker.rho, marker.phi, marker.rho_dot;
+  meas_package.raw_measurements_ << marker.rho, marker.phi, marker.rhod;
   meas_package.timestamp_ = timestamp;
 
   car.ukf.ProcessMeasurement(meas_package);

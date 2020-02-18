@@ -21,11 +21,11 @@ struct Color {
 enum CameraAngle { kXY, kTopDown, kSide, kFPS };
 
 struct Instruction {
-  long long time_us;
+  float time_us;
   float acceleration;
   float steering;
 
-  Instruction(long long t, float acc, float s) : time_us(t), acceleration(acc), steering(s) {}
+  Instruction(float t, float acc, float s) : time_us(t), acceleration(acc), steering(s) {}
 };
 
 struct Car {
@@ -44,7 +44,6 @@ struct Car {
 
   UKF ukf;
 
-  // accuation instructions
   std::vector<Instruction> instructions;
   int accuate_index;
 
@@ -53,12 +52,12 @@ struct Car {
 
   Car() : position(Eigen::Vector3d(0, 0, 0)), dimensions(Eigen::Vector3d(0, 0, 0)), color(Color(0, 0, 0)) {}
 
-  Car(Eigen::Vector3d _position, Eigen::Vector3d _dimensions, Color _color, float _velocity, float _set_angle, float _lf, std::string _name)
-      : position(_position),
-        dimensions(_dimensions),
+  Car(Eigen::Vector3d _position, Eigen::Vector3d _dimensions, Color _color, float _velocity, float _angle, float _lf, std::string _name)
+      : position(std::move(_position)),
+        dimensions(std::move(_dimensions)),
         color(_color),
         velocity(_velocity),
-        angle(_set_angle),
+        angle(_angle),
         lf(_lf),
         name(std::move(_name)),
         acceleration(0),
@@ -127,13 +126,13 @@ struct Car {
 
   void SetSteering(float setSteer) { steering = setSteer; }
 
-  void SetInstructions(std::vector<Instruction> _instructions) {
+  void SetInstructions(const std::vector<Instruction>& _instructions) {
     for (auto a : _instructions) {
       instructions.emplace_back(a);
     }
   }
 
-  void SetUKF(UKF tracker) { ukf = tracker; }
+  void SetUKF(const UKF& tracker) { ukf = tracker; }
 
   void Move(float dt, int time_us) {
     if (!instructions.empty() && accuate_index < (int)instructions.size() - 1) {
@@ -155,7 +154,7 @@ struct Car {
   }
 
   // collision helper function
-  bool InBetween(double point, double center, double range) { return (center - range <= point) && (center + range >= point); }
+  inline bool InBetween(double point, double center, double range) { return (center - range <= point) && (center + range >= point); }
 
   bool CheckCollision(Eigen::Vector3d point) {
     // check collision for rotated car

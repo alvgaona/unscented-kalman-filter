@@ -24,7 +24,7 @@ struct Ray {
    * @param resolution Ray's step magnitude, used for ray casting, the smaller the more accurate but the more expensive
    */
 
-  Ray(Eigen::Vector3d _origin, double horizontal_angle, double vertical_angle, double _resolution)
+  Ray(Eigen::Vector3d _origin, double horizontal_angle, double vertical_angle, float _resolution)
       : origin(std::move(_origin)),
         resolution(_resolution),
         direction(

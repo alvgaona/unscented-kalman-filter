@@ -79,11 +79,11 @@ void Highway::StepHighway(double egoVelocity, long long timestamp, int frame_per
   std::vector<Eigen::VectorXd> ground_truth;
 
   // render highway environment with poles
-  RenderHighway(egoVelocity * timestamp / 1e6L, viewer);
+  RenderHighway(static_cast<double>(egoVelocity * timestamp) / 1e6, viewer);
   ego_car.Render(viewer);
 
   for (int i = 0; i < traffic.size(); i++) {
-    traffic[i].Move(1.0 / frame_per_sec, timestamp);
+    traffic[i].Move(1.0 / frame_per_sec, static_cast<double>(timestamp));
     if (!visualize_pcd) traffic[i].Render(viewer);
     // Sense surrounding cars with lidar and radar
     if (track_cars[i]) {
@@ -106,12 +106,12 @@ void Highway::StepHighway(double egoVelocity, long long timestamp, int frame_per
   }
   viewer->addText("Accuracy - RMSE:", 30, 300, 20, 1, 1, 1, "rmse");
   Eigen::VectorXd rmse = Tools::CalculateRMSE(estimations, ground_truth);
-  viewer->addText(" X: " + std::to_string(rmse[0]), 30, 275, 20, 1, 1, 1, "rmse_x");
-  viewer->addText(" Y: " + std::to_string(rmse[1]), 30, 250, 20, 1, 1, 1, "rmse_y");
+  viewer->addText("X: " + std::to_string(rmse[0]), 30, 275, 20, 1, 1, 1, "rmse_x");
+  viewer->addText("Y: " + std::to_string(rmse[1]), 30, 250, 20, 1, 1, 1, "rmse_y");
   viewer->addText("Vx: " + std::to_string(rmse[2]), 30, 225, 20, 1, 1, 1, "rmse_vx");
   viewer->addText("Vy: " + std::to_string(rmse[3]), 30, 200, 20, 1, 1, 1, "rmse_vy");
 
-  if (timestamp > 1.0e6) {
+  if (timestamp > 1.0e6L) {
     if (rmse[0] > rmse_threshold[0]) {
       rmse_faillog[0] = rmse[0];
       pass = false;

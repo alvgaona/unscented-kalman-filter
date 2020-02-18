@@ -11,13 +11,16 @@
 #include "render.h"
 
 struct LMarker {
-  double x, y;
-  LMarker(double set_x, double set_y) : x(set_x), y(set_y) {}
+  float x;
+  float y;
+  LMarker(float _x, float _y) : x(_x), y(_y) {}
 };
 
 struct RMarker {
-  double rho, phi, rho_dot;
-  RMarker(double set_rho, double set_phi, double set_rho_dot) : rho(set_rho), phi(set_phi), rho_dot(set_rho_dot) {}
+  double rho;
+  double phi;
+  double rhod;
+  RMarker(double _rho, double _phi, double _rhod) : rho(_rho), phi(_phi), rhod(_rhod) {}
 };
 
 class Tools {
