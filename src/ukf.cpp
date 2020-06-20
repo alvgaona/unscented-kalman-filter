@@ -8,7 +8,7 @@ UKF::UKF() {
 
   x_ = Eigen::VectorXd(5);     // Initial state vector
   P_ = Eigen::MatrixXd(5, 5);  // Initial covariance matrix
-  P_ << 1.0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 0, 1.0;
+  P_ << 1.0, 0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 0, 1.0;
 
   std_a_ = 1;      // Process noise standard deviation longitudinal acceleration in m/s^2
   std_yawdd_ = 1;  // Process noise standard deviation yaw acceleration in rad/s^2
